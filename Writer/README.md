@@ -2,4 +2,5 @@
 
 Use GRU cell in RNN
 
-The data set is the Penn Tree Bank (PTB) data set which is described in https://www.tensorflow.org/tutorials/sequences/recurrent.
+The training data is the first 100 lines of the King James Bible (https://www.kingjamesbibleonline.org/).
+ 
