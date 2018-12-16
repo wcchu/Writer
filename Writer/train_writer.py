@@ -18,7 +18,9 @@ def get_data(data_path=None):
     tuple (raw_data, vocabulary)
     """
 
-    data = tf.gfile.GFile(data_path, "r").read().replace("\n", "<eos>").split()
+    data = tf.gfile.GFile(
+        data_path, "r").read().replace("\n", "<eos> ").replace(".", "").replace(
+            ",", "").replace(";", "").split()
 
     counter = collections.Counter(data)
     count_pairs = sorted(counter.items(), key=lambda x: (-x[1], x[0]))
