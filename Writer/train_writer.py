@@ -7,6 +7,7 @@ from optparse import OptionParser
 import tensorflow as tf
 import numpy as np
 import collections
+import json
 
 
 def get_data(data_path=None):
@@ -67,6 +68,11 @@ def run():
         data_path=options.input)
     n_words = len(word_to_id)
     print(n_words)
+    # write word_to_id and id_to_word to files
+    with open('word_to_id.txt', 'w') as f:
+        f.write(json.dumps(word_to_id))
+    with open('id_to_word.txt', 'w') as f:
+        f.write(json.dumps(id_to_word))
 
     # set training parameters
     batch_size = 10
