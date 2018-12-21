@@ -40,7 +40,7 @@ def run():
     seed = initial_seed.copy()
     with tf.Session() as sess:
 
-        saver.restore(sess, "./model")
+        saver.restore(sess, "./model/")
 
         for iteration in range(pred_iterations):
             x_pred = seed[:, -time_steps:, :]
