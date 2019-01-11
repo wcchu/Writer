@@ -67,7 +67,7 @@ def run():
     raw_data_words, raw_data_ids, word_to_id, id_to_word = get_data(
         data_path=options.input)
     n_words = len(word_to_id)
-    print(n_words)
+    print("number of distinct words = %d" % n_words)
     # write word_to_id and id_to_word to files
     with open('word_to_id.txt', 'w') as f:
         f.write(json.dumps(word_to_id))
