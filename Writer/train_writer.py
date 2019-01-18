@@ -78,7 +78,7 @@ def run():
     batch_size = 10
     time_steps = 10
     # epochs = 1 # not considering epoch now
-    iterations = 200
+    iterations = 100
     learning_rate = 0.1
 
     # Input / Output(target)
@@ -88,7 +88,16 @@ def run():
     # Setup RNN
     cell = tf.nn.rnn_cell.GRUCell(n_words)
     outputs, states = tf.nn.dynamic_rnn(cell, X, dtype=tf.float32)
-    loss = tf.reduce_mean(tf.square(outputs - Y))
+
+    # option1: "outputs"
+    # loss = tf.reduce_mean(tf.square(outputs - Y))
+
+    # option2: "probs"
+    dense = tf.layers.dense(inputs=outputs, units=n_words, activation=None)
+    probs = tf.nn.softmax(dense)
+    loss = tf.reduce_mean(
+        tf.nn.softmax_cross_entropy_with_logits_v2(labels=Y, logits=probs))
+
     optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
     train = optimizer.minimize(loss)
     init = tf.global_variables_initializer()
