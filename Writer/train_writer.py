@@ -16,31 +16,29 @@ def get_data(data_path=None):
     Args:
     data_path: string path to the directory
     Returns:
-    tuple (raw_data, vocabulary)
+    tuple (data as character list, data as id list, char-to-id dict, id-to-char list)
     """
 
-    data = tf.gfile.GFile(
-        data_path, "r").read().replace("\n", "<eos> ").replace(".", "").replace(
-            ",", "").replace(";", "").split()
+    data = list(tf.gfile.GFile(data_path, "r").read().replace("\n", ""))
 
     counter = collections.Counter(data)
     count_pairs = sorted(counter.items(), key=lambda x: (-x[1], x[0]))
 
-    words, _ = list(zip(*count_pairs))
-    word_to_id = dict(zip(words, range(len(words))))
-    id_to_word = dict(zip(range(len(words)), words))
+    chars, _ = list(zip(*count_pairs))
+    char_to_id = dict(zip(chars, range(len(chars))))
+    id_to_char = dict(zip(range(len(chars)), chars))
 
-    data_in_ids = [word_to_id[word] for word in data if word in word_to_id]
-    return data, data_in_ids, word_to_id, id_to_word
+    data_in_ids = [char_to_id[char] for char in data]
+    return data, data_in_ids, char_to_id, id_to_char
 
 
-def vec_to_word(vec, id_to_word):
+def vec_to_char(vec, id_to_char):
     """
-    Convert a one-hot array into a word
+    Convert a one-hot array into a char
     """
-    index = np.argmax(vec, axis=0)  # get the index of the most probable word
-    word = id_to_word[index]
-    return word
+    index = np.argmax(vec, axis=0)  # get the index of the most probable char
+    char = id_to_char[index]
+    return char
 
 
 # build a random batch from data
@@ -60,43 +58,43 @@ def run():
 
     # parse option(s)
     parser = OptionParser()
-    parser.add_option('-i', '--input', dest='input', default='bible.txt')
+    parser.add_option('-i', '--input', dest='input', default='bible_10000.txt')
     (options, args) = parser.parse_args()
 
     # import data from disk
-    raw_data_words, raw_data_ids, word_to_id, id_to_word = get_data(
+    raw_data_chars, raw_data_ids, char_to_id, id_to_char = get_data(
         data_path=options.input)
-    n_words = len(word_to_id)
-    print("number of distinct words = %d" % n_words)
-    # write word_to_id and id_to_word to files
-    with open('word_to_id.txt', 'w') as f:
-        f.write(json.dumps(word_to_id))
-    with open('id_to_word.txt', 'w') as f:
-        f.write(json.dumps(id_to_word))
+    n_chars = len(char_to_id)
+    print("number of distinct chars = %d" % n_chars)
+    # write char_to_id and id_to_char to files
+    with open('char_to_id.txt', 'w') as f:
+        f.write(json.dumps(char_to_id))
+    with open('id_to_char.txt', 'w') as f:
+        f.write(json.dumps(id_to_char))
 
     # set training parameters
-    batch_size = 10
-    time_steps = 10
+    batch_size = 50
+    time_steps = 100
     # epochs = 1 # not considering epoch now
-    iterations = 100
+    iterations = 1000
     learning_rate = 0.1
 
     # Input / Output(target)
-    X = tf.placeholder(tf.float32, [None, time_steps, n_words])
-    Y = tf.placeholder(tf.float32, [None, time_steps, n_words])
+    X = tf.placeholder(tf.float32, [None, time_steps, n_chars])
+    Y = tf.placeholder(tf.float32, [None, time_steps, n_chars])
 
     # Setup RNN
-    cell = tf.nn.rnn_cell.GRUCell(n_words)
+    cell = tf.nn.rnn_cell.GRUCell(n_chars)
     outputs, states = tf.nn.dynamic_rnn(cell, X, dtype=tf.float32)
 
     # option1: "outputs"
-    # loss = tf.reduce_mean(tf.square(outputs - Y))
+    loss = tf.reduce_mean(tf.square(outputs - Y))
 
     # option2: "probs"
-    dense = tf.layers.dense(inputs=outputs, units=n_words, activation=None)
-    probs = tf.nn.softmax(dense)
-    loss = tf.reduce_mean(
-        tf.nn.softmax_cross_entropy_with_logits_v2(labels=Y, logits=probs))
+    #dense = tf.layers.dense(inputs=outputs, units=n_chars, activation=None)
+    #probs = tf.nn.softmax(dense)
+    #loss = tf.reduce_mean(
+    #    tf.nn.softmax_cross_entropy_with_logits_v2(labels=Y, logits=probs))
 
     optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate)
     train = optimizer.minimize(loss)
@@ -113,11 +111,11 @@ def run():
                 data=raw_data_ids,
                 batch_size=batch_size,
                 time_steps=time_steps,
-                input_size=n_words)
+                input_size=n_chars)
 
             sess.run(train, feed_dict={X: x_batch, Y: y_batch})
 
-            if iteration % 10 == 0:
+            if iteration % 100 == 0:
                 loss_ = loss.eval(feed_dict={X: x_batch, Y: y_batch})
                 print("iteration = %5d, loss = %10.4f" % (iteration, loss_))
 
