@@ -12,4 +12,4 @@ or
 (c_i + d_i * u_i) - (c_j + d_j * u_j) = u_j - u_i
 ```
 
-which forms the basic equation to solve.
+which forms the basic equation to solve--`u` values are known tag values and enter into response in the form of `u_j - u_i` and into predictor features as independent values, and `c` and `d` values are tied to each item and what we train in the model.
