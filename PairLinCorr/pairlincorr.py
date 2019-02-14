@@ -3,6 +3,8 @@ import pandas as pd
 import tensorflow as tf
 from sklearn.model_selection import train_test_split
 
+MODEL_DIR = 'model_dir_py/'
+
 # import data
 data = pd.read_csv(
     'input.csv', dtype={
@@ -42,7 +44,7 @@ input_fn_train = tf.estimator.inputs.pandas_input_fn(
     x=x_train,
     y=y_train,
     batch_size=100,
-    num_epochs=5,
+    num_epochs=3,
     shuffle=True
 )
 
@@ -117,6 +119,7 @@ def model_fn(features, labels, mode, params):
 # custom estimator
 regressor = tf.estimator.Estimator(
     model_fn=model_fn,
+    model_dir=MODEL_DIR,
     params={'feature_columns': [item1_col, value1_col, item2_col, value2_col],
             'step_size': 0.1}
 )
@@ -126,6 +129,23 @@ regressor.train(
     input_fn=input_fn_train,
     steps=None
 )
+
+
+# extract trained variables in the model
+checkpoint = tf.train.get_checkpoint_state(checkpoint_dir=MODEL_DIR)
+with tf.Session() as sess:
+    saver = tf.train.import_meta_graph(
+        checkpoint.model_checkpoint_path + '.meta')
+    saver.restore(sess, checkpoint.model_checkpoint_path)
+
+    # check all variables values
+    v = sess.run(tf.global_variables())
+
+
+# We first prove that all variables are extracted in `v`, then we'll replace
+# the `x_pred` table with values in `v` with proper table structure.
+# Ideally it will be `c`s and `d`s of `p' = c + (1 + d) * p`.
+print(v)
 
 
 # evaluation input function
