@@ -44,7 +44,7 @@ input_fn_train = tf.estimator.inputs.pandas_input_fn(
     x=x_train,
     y=y_train,
     batch_size=100,
-    num_epochs=3,
+    num_epochs=5,
     shuffle=True
 )
 
