@@ -131,23 +131,6 @@ regressor.train(
 )
 
 
-# extract trained variables in the model
-checkpoint = tf.train.get_checkpoint_state(checkpoint_dir=MODEL_DIR)
-with tf.Session() as sess:
-    saver = tf.train.import_meta_graph(
-        checkpoint.model_checkpoint_path + '.meta')
-    saver.restore(sess, checkpoint.model_checkpoint_path)
-
-    # check all variables values
-    v = sess.run(tf.global_variables())
-
-
-# We first prove that all variables are extracted in `v`, then we'll replace
-# the `x_pred` table with values in `v` with proper table structure.
-# Ideally it will be `c`s and `d`s of `p' = c + (1 + d) * p`.
-print(v)
-
-
 # evaluation input function
 input_fn_eval = tf.estimator.inputs.pandas_input_fn(
     x=x_test,
@@ -157,42 +140,23 @@ input_fn_eval = tf.estimator.inputs.pandas_input_fn(
     shuffle=False
 )
 
+
 # evaluate
 eval_result = regressor.evaluate(input_fn=input_fn_eval)
 print(eval_result)
 
 
-# construct prediction table
-
-# list existing items with value 0
-x_pred = pd.DataFrame({'item1': list_items})
-x_pred['value1'] = 0
-x_pred['item2'] = ''
-x_pred['value2'] = 0
-
-# list existing items with value 1
-x_pred_ext = x_pred.copy()
-x_pred_ext['value1'] = 1
-x_pred = x_pred.append(x_pred_ext, ignore_index=True)
-
-# swap 1 <--> 2
-x_pred2 = x_pred[['item2', 'value2', 'item1', 'value1']]
-x_pred2.columns = ['item1', 'value1', 'item2', 'value2']
-x_pred = x_pred.append(x_pred2, ignore_index=True).drop_duplicates()
+# extract trained variables in the model
+checkpoint = tf.train.get_checkpoint_state(checkpoint_dir=MODEL_DIR)
+with tf.Session() as sess:
+    saver = tf.train.import_meta_graph(
+        checkpoint.model_checkpoint_path + '.meta')
+    saver.restore(sess, checkpoint.model_checkpoint_path)
+    tvs = sess.run(tf.trainable_variables())
 
 
-# prediction
-predictions = list(
-    regressor.predict(
-        input_fn=tf.estimator.inputs.pandas_input_fn(
-            x=x_pred,
-            batch_size=len(x_pred),
-            num_epochs=1,
-            shuffle=False)))
-
-# output
-pred = []
-for i in predictions:
-    pred.append(np.float64(i['predictions'][0]))
-x_pred['shift'] = pred
-x_pred.to_csv('predictions.csv', sep=',', index=False)
+# construct and export coefficient table
+coeffs = np.reshape(tvs, [2, 704])
+item_coeffs = pd.DataFrame(
+    {'item': list_items, 'c': coeffs[0, :], 'd': coeffs[1, :]})
+item_coeffs.to_csv('item_coeffs.csv', sep=',', index=False)
