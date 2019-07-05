@@ -1,67 +1,111 @@
-import numpy as np
+# -*- coding: utf-8 -*-
+"""
+Build PairShift model with TensorFlow 2.0
+"""
+
+import logging
 import pandas as pd
+from sklearn.model_selection import train_test_split
 import tensorflow as tf
-from argparse import ArgumentParser
 
-parser = ArgumentParser()
-parser.add_argument(
-    "-i",
-    "--input-file",
-    dest="input_file",
-    help="read data from FILE",
-    metavar="FILE")
-parser.add_argument(
-    "-o",
-    "--output-file",
-    dest="output_file",
-    help="write data to FILE",
-    metavar="FILE")
-args = parser.parse_args()
+DATA_FILE = 'input_100.csv'
+BATCH_SIZE = 32
+EPOCHS = 1
 
-data = pd.read_csv(
-    args.input_file, dtype={
-        'item1': str,
-        'item2': str,
-        'dif': float
-    })
-x = data[['item1', 'item2']]
-y = data['dif']
 
-# count feature values
-list_items = x['item1'].append(x['item2']).drop_duplicates().tolist()
-n_items = len(list_items)
+def run():
+    """run"""
 
-# columns
-item1_col = tf.feature_column.categorical_column_with_vocabulary_list(
-    'item1', vocabulary_list=list_items)
-item2_col = tf.feature_column.categorical_column_with_vocabulary_list(
-    'item2', vocabulary_list=list_items)
-feat_cols = [item1_col, item2_col]
+    #
+    # import data
+    #
+    data = pd.read_csv(DATA_FILE,
+                       dtype={
+                           'item1': str,
+                           'item2': str,
+                           'dif': float
+                       })
 
-# estimator
-estimator = tf.estimator.LinearRegressor(feature_columns=feat_cols)
+    # split training and evaluation data
+    d_train, d_eval = train_test_split(data, test_size=0.3)
 
-# train model
-estimator.train(
-    input_fn=tf.estimator.inputs.pandas_input_fn(
-        x=x, y=y, batch_size=200, num_epochs=5, shuffle=True))
+    # count items
+    items = d_train['item1'].append(d_train['item2']).unique().tolist()
+    print("number of unique items: {}".format(len(items)))
 
-# construct a table for prediction
-x_pred = pd.DataFrame(columns=x.columns)
-x_pred = x_pred.append(x[['item1']].drop_duplicates(), ignore_index=True)
-x_pred = x_pred.append(x[['item2']].drop_duplicates(), ignore_index=True)
-x_pred = x_pred.replace(np.nan, '', regex=True)
-x_pred.loc[len(x_pred)] = ['', '']
+    # A utility method to create a tf.data dataset from a Pandas Dataframe
+    def df_to_dataset(dataframe, shuffle=True, batch_size=32):
+        dataframe = dataframe.copy()
+        labels = dataframe.pop('dif')
+        ds = tf.data.Dataset.from_tensor_slices((dict(dataframe), labels))
+        if shuffle:
+            ds = ds.shuffle(buffer_size=len(dataframe))
+        ds = ds.batch(batch_size)
+        return ds
 
-# predict for each item
-predictions = list(
-    estimator.predict(
-        input_fn=tf.estimator.inputs.pandas_input_fn(
-            x=x_pred, batch_size=len(x_pred), num_epochs=1, shuffle=False)))
+    #
+    # training and evaluation
+    #
+    ds_train = df_to_dataset(d_train, batch_size=BATCH_SIZE)
+    ds_eval = df_to_dataset(d_eval, shuffle=False, batch_size=BATCH_SIZE)
 
-# output
-pred = []
-for i in predictions:
-    pred.append(np.float64(i['predictions'][0]))
-x_pred['shift'] = pred
-x_pred.to_csv(args.output_file, sep=',', index=False)
+    # columns
+    item1_col = tf.feature_column.indicator_column(
+        tf.feature_column.categorical_column_with_vocabulary_list(
+            'item1', vocabulary_list=items))
+    item2_col = tf.feature_column.indicator_column(
+        tf.feature_column.categorical_column_with_vocabulary_list(
+            'item2', vocabulary_list=items))
+
+    # define model class
+    class MyModel(tf.keras.Model):
+        '''
+        Create model class
+        https://www.tensorflow.org/versions/r2.0/api_docs/python/tf/keras/Model
+        '''
+
+        def __init__(self):
+            super(MyModel, self).__init__()
+            self.input1 = tf.keras.layers.DenseFeatures(item1_col)
+            self.input2 = tf.keras.layers.DenseFeatures(item2_col)
+            self.subtracted = tf.keras.layers.Subtract(name='sub')
+            self.dense = tf.keras.layers.Dense(1)
+
+        def call(self, inputs):
+            # input1 and input2 take "item1" and "item2" respectively from
+            # inputs
+            hot1 = self.input1(inputs)
+            hot2 = self.input2(inputs)
+            # subtract the onehot of item2 from onehot of item1
+            sub = self.subtracted([hot1, hot2])
+            # simple linear regression
+            out = self.dense(sub)
+            return out
+
+    model = MyModel()
+
+    # compile model
+    model.compile(optimizer=tf.keras.optimizers.RMSprop(0.001),
+                  loss='mse',
+                  metrics=['mae', 'mse'],
+                  run_eagerly=True)
+
+    # train model
+    model.fit(ds_train, validation_data=ds_eval, epochs=EPOCHS)
+
+    # print summary
+    model.summary()
+
+    #
+    # TODO:
+    # build a wrapped model which takes one item as input and
+    # return item's coefficient
+    #
+
+    # save model
+    # tf.saved_model.save(model, export_dir='saved_model')
+
+
+if __name__ == '__main__':
+    logging.getLogger().setLevel(logging.WARNING)
+    run()
