@@ -92,7 +92,6 @@ def run():
         '''
         Define model
         '''
-
         model = MyModel()
         model.compile(optimizer=tf.keras.optimizers.RMSprop(0.001),
                       loss='mse',
@@ -106,14 +105,16 @@ def run():
     # train model
     model.fit(ds_train, validation_data=ds_eval, epochs=EPOCHS)
 
-    # print summary
+    # save weights
+    model.save_weights('./checkpoints/my_checkpoint')
+
     model.summary()
+    # print summary
 
     #
     # TODO:
     # build a wrapped model which takes one item as input and
     # return item's coefficient
-    #
 
     # save model
     # tf.saved_model.save(model, export_dir='saved_model')
