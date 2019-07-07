@@ -62,7 +62,7 @@ def run():
         tf.feature_column.categorical_column_with_vocabulary_list(
             'item2', vocabulary_list=items))
 
-    # define model class
+    # define MyModel class
     class MyModel(tf.keras.Model):
         '''
         Create model class
@@ -87,13 +87,21 @@ def run():
             out = self.dense(sub)
             return out
 
-    model = MyModel()
+    # define model
+    def create_model():
+        '''
+        Define model
+        '''
 
-    # compile model
-    model.compile(optimizer=tf.keras.optimizers.RMSprop(0.001),
-                  loss='mse',
-                  metrics=['mae', 'mse'],
-                  run_eagerly=True)
+        model = MyModel()
+        model.compile(optimizer=tf.keras.optimizers.RMSprop(0.001),
+                      loss='mse',
+                      metrics=['mae', 'mse'],
+                      run_eagerly=True)
+        return model
+
+    # create model
+    model = create_model()
 
     # train model
     model.fit(ds_train, validation_data=ds_eval, epochs=EPOCHS)
