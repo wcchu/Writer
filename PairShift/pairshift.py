@@ -36,7 +36,8 @@ def run():
 
     # count items
     items = d_train['item1'].append(d_train['item2']).unique().tolist()
-    print("number of unique items: {}".format(len(items)))
+    n_items = len(items)
+    print("number of unique items: {}".format(n_items))
 
     # A utility method to create a tf.data dataset from a Pandas Dataframe
     def df_to_dataset(dataframe, shuffle=True, batch_size=32):
@@ -74,7 +75,7 @@ def run():
             self.input1 = tf.keras.layers.DenseFeatures(item1_col)
             self.input2 = tf.keras.layers.DenseFeatures(item2_col)
             self.subtracted = tf.keras.layers.Subtract(name='sub')
-            self.dense = tf.keras.layers.Dense(1)
+            self.dense = tf.keras.layers.Dense(1, use_bias=False)
 
         def call(self, inputs):
             # input1 and input2 take "item1" and "item2" respectively from
@@ -105,19 +106,16 @@ def run():
     # train model
     model.fit(ds_train, validation_data=ds_eval, epochs=EPOCHS)
 
-    # save weights
-    model.save_weights('./checkpoints/my_checkpoint')
-
-    model.summary()
     # print summary
+    model.summary()
 
-    #
+    # directly get trained variables
+    variables = tf.reshape(model.trainable_variables, shape=[n_items]).numpy()
+    item_coefficients = pd.DataFrame({'item': items, 'coefficient': variables})
+    item_coefficients.to_csv('item_coefficients.csv', index=False)
     # TODO:
-    # build a wrapped model which takes one item as input and
-    # return item's coefficient
-
-    # save model
-    # tf.saved_model.save(model, export_dir='saved_model')
+    # use these trained variables (item coefficients) to build a wrapped
+    # model which takes one item as input and return item's coefficient
 
 
 if __name__ == '__main__':
