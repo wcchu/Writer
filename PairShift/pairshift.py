@@ -20,12 +20,12 @@ def run():
     #
     # import data
     #
-    data = pd.read_csv(DATA_FILE,
-                       dtype={
-                           'item1': str,
-                           'item2': str,
-                           'dif': float
-                       })
+    data = pd.read_csv(
+        DATA_FILE, dtype={
+            'item1': str,
+            'item2': str,
+            'dif': float
+        })
 
     # sample data for development
     d_trash, d_use = train_test_split(data, test_size=SAMPLE_RATIO)
@@ -63,15 +63,17 @@ def run():
         tf.feature_column.categorical_column_with_vocabulary_list(
             'item2', vocabulary_list=items))
 
-    # define MyModel class
-    class MyModel(tf.keras.Model):
+    # PairModel is used to train variables using the paired examples
+    class PairModel(tf.keras.Model):
         '''
-        Create model class
+        Train variables using the paired examples
+
+        Tutorial on basic structure:
         https://www.tensorflow.org/versions/r2.0/api_docs/python/tf/keras/Model
         '''
 
         def __init__(self):
-            super(MyModel, self).__init__()
+            super(PairModel, self).__init__()
             self.input1 = tf.keras.layers.DenseFeatures(item1_col)
             self.input2 = tf.keras.layers.DenseFeatures(item2_col)
             self.subtracted = tf.keras.layers.Subtract(name='sub')
@@ -89,33 +91,56 @@ def run():
             return out
 
     # define model
-    def create_model():
+    def create_pair_model():
         '''
-        Define model
+        Define pair model
         '''
-        model = MyModel()
-        model.compile(optimizer=tf.keras.optimizers.RMSprop(0.001),
-                      loss='mse',
-                      metrics=['mae', 'mse'],
-                      run_eagerly=True)
+        model = PairModel()
+        model.compile(
+            optimizer=tf.keras.optimizers.RMSprop(0.001),
+            loss='mse',
+            metrics=['mae', 'mse'],
+            run_eagerly=True)
         return model
 
     # create model
-    model = create_model()
+    pair_model = create_pair_model()
 
     # train model
-    model.fit(ds_train, validation_data=ds_eval, epochs=EPOCHS)
+    pair_model.fit(ds_train, validation_data=ds_eval, epochs=EPOCHS)
 
     # print summary
-    model.summary()
+    pair_model.summary()
 
     # directly get trained variables
-    variables = tf.reshape(model.trainable_variables, shape=[n_items]).numpy()
+    variables = tf.reshape(
+        pair_model.trainable_variables, shape=[n_items]).numpy()
     item_coefficients = pd.DataFrame({'item': items, 'coefficient': variables})
     item_coefficients.to_csv('item_coefficients.csv', index=False)
-    # TODO:
-    # use these trained variables (item coefficients) to build a wrapped
-    # model which takes one item as input and return item's coefficient
+
+    #
+    # make prediction model
+    #
+    class PredModel(tf.Module):
+
+        def __init__(self):
+            '''
+            Create a lookup table mapping from items to coefficients
+            '''
+            self.Table = tf.lookup.StaticHashTable(
+                initializer=tf.lookup.KeyValueTensorInitializer(
+                    keys=tf.constant(item_coefficients['item'], tf.string),
+                    values=tf.constant(item_coefficients['coefficient'],
+                                       tf.float32)),
+                default_value=0.0)
+
+        @tf.function(input_signature=[tf.TensorSpec(shape=[], dtype=tf.string)])
+        def __call__(self, item):
+            coeff = self.Table.lookup(item)
+            return coeff
+
+    pred_model = PredModel()
+    tf.saved_model.save(pred_model, export_dir='saved_pred_model')
 
 
 if __name__ == '__main__':
