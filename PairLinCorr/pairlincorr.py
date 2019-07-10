@@ -9,8 +9,7 @@ from sklearn.model_selection import train_test_split
 import tensorflow as tf
 
 DATA_FILE = '../PairShift/input.csv'
-SAMPLE_RATIO = 0.01
-BATCH_SIZE = 32
+SAMPLE_RATIO = 0.1
 EPOCHS = 1
 
 
@@ -54,8 +53,8 @@ def run():
     #
     # training and evaluation
     #
-    ds_train = df_to_dataset(d_train, batch_size=BATCH_SIZE)
-    ds_eval = df_to_dataset(d_eval, shuffle=False, batch_size=2 * BATCH_SIZE)
+    ds_train = df_to_dataset(d_train)
+    ds_eval = df_to_dataset(d_eval, shuffle=False)
 
     # columns
     item1_col = tf.feature_column.indicator_column(
