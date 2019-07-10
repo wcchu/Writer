@@ -9,7 +9,7 @@ from sklearn.model_selection import train_test_split
 import tensorflow as tf
 
 DATA_FILE = 'input.csv'
-SAMPLE_RATIO = 0.001
+SAMPLE_RATIO = 0.01
 BATCH_SIZE = 32
 EPOCHS = 1
 
@@ -23,9 +23,11 @@ def run():
     data = pd.read_csv(
         DATA_FILE, dtype={
             'item1': str,
+            'value1': float,
             'item2': str,
-            'dif': float
+            'value2': float
         })
+    data['dif'] = data['value2'] - data['value1']
 
     # sample data for development
     d_trash, d_use = train_test_split(data, test_size=SAMPLE_RATIO)
