@@ -9,8 +9,7 @@ from sklearn.model_selection import train_test_split
 import tensorflow as tf
 
 DATA_FILE = 'input.csv'
-SAMPLE_RATIO = 0.1
-EPOCHS = 1
+EPOCHS = 5
 
 
 def run():
@@ -25,13 +24,10 @@ def run():
             'item2': str,
             'dif': float
         })
-
-    # sample data for development
-    d_trash, d_use = train_test_split(data, test_size=SAMPLE_RATIO)
-    print("number of data points: {}".format(len(d_use)))
+    print("number of data points: {}".format(len(data)))
 
     # split training and evaluation data
-    d_train, d_eval = train_test_split(d_use, test_size=0.3)
+    d_train, d_eval = train_test_split(data, test_size=0.3)
 
     # count items
     items = d_train['item1'].append(d_train['item2']).unique().tolist()
