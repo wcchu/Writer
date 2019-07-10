@@ -1,3 +1,5 @@
+# The `anonymizer.py` is an helper script to anonymize raw data in the pair form. Use python3 to run the script: `python3 anonymizer.py -i raw_data.csv -o anonymized_data.csv`
+
 import csv
 from faker import Factory
 from collections import defaultdict
