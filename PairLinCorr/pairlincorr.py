@@ -20,13 +20,13 @@ def run():
     #
     # import data
     #
-    data = pd.read_csv(
-        DATA_FILE, dtype={
-            'item1': str,
-            'value1': float,
-            'item2': str,
-            'value2': float
-        })
+    data = pd.read_csv(DATA_FILE,
+                       dtype={
+                           'item1': str,
+                           'value1': float,
+                           'item2': str,
+                           'value2': float
+                       })
     data['dif'] = data['value2'] - data['value1']
 
     # sample data for development
@@ -55,7 +55,7 @@ def run():
     # training and evaluation
     #
     ds_train = df_to_dataset(d_train, batch_size=BATCH_SIZE)
-    ds_eval = df_to_dataset(d_eval, shuffle=False, batch_size=2*BATCH_SIZE)
+    ds_eval = df_to_dataset(d_eval, shuffle=False, batch_size=2 * BATCH_SIZE)
 
     # columns
     item1_col = tf.feature_column.indicator_column(
@@ -90,16 +90,16 @@ def run():
             hot1_item = self.input_item_1(inputs)
             hot1 = tf.concat([
                 hot1_item,
-                tf.multiply(hot1_item,
-                            self.input_value_1(inputs))
-            ], axis=1)
+                tf.multiply(hot1_item, self.input_value_1(inputs))
+            ],
+                axis=1)
             # target part
             hot2_item = self.input_item_2(inputs)
             hot2 = tf.concat([
                 hot2_item,
-                tf.multiply(hot2_item,
-                            self.input_value_2(inputs))
-            ], axis=1)
+                tf.multiply(hot2_item, self.input_value_2(inputs))
+            ],
+                axis=1)
             # subtract the onehot of item2 from onehot of item1
             sub = self.subtracted([hot1, hot2])
             # simple linear regression
@@ -112,11 +112,10 @@ def run():
         Define pair model
         '''
         model = PairModel()
-        model.compile(
-            optimizer=tf.keras.optimizers.RMSprop(0.001),
-            loss='mse',
-            metrics=['mae', 'mse'],
-            run_eagerly=True)
+        model.compile(optimizer=tf.keras.optimizers.RMSprop(0.001),
+                      loss='mse',
+                      metrics=['mae', 'mse'],
+                      run_eagerly=True)
         return model
 
     # create model
@@ -129,8 +128,8 @@ def run():
     pair_model.summary()
 
     # directly get trained variables
-    variables = tf.reshape(
-        pair_model.trainable_variables, shape=[2, n_items]).numpy()
+    variables = tf.reshape(pair_model.trainable_variables,
+                           shape=[2, n_items]).numpy()
     item_coefficients = pd.DataFrame({
         'item': items,
         'c0': variables[0],
@@ -141,26 +140,35 @@ def run():
     #
     # make prediction model
     #
-    # class PredModel(tf.Module):
+    class PredModel(tf.Module):
+        def __init__(self):
+            '''
+            Create lookup tables mapping from items to coefficients
+            '''
+            # 0-th order coefficients
+            self.Table0 = tf.lookup.StaticHashTable(
+                initializer=tf.lookup.KeyValueTensorInitializer(
+                    keys=tf.constant(item_coefficients['item'], tf.string),
+                    values=tf.constant(item_coefficients['c0'], tf.float32)),
+                default_value=0.0)
+            # 1st order coefficients
+            self.Table1 = tf.lookup.StaticHashTable(
+                initializer=tf.lookup.KeyValueTensorInitializer(
+                    keys=tf.constant(item_coefficients['item'], tf.string),
+                    values=tf.constant(item_coefficients['c1'], tf.float32)),
+                default_value=0.0)
 
-    #     def __init__(self):
-    #         '''
-    #         Create a lookup table mapping from items to coefficients
-    #         '''
-    #         self.Table = tf.lookup.StaticHashTable(
-    #             initializer=tf.lookup.KeyValueTensorInitializer(
-    #                 keys=tf.constant(item_coefficients['item'], tf.string),
-    #                 values=tf.constant(item_coefficients['coefficient'],
-    #                                    tf.float32)),
-    #             default_value=0.0)
+        @tf.function(
+            input_signature=[tf.TensorSpec(shape=[], dtype=tf.string),
+                             tf.TensorSpec(shape=[], dtype=tf.float32)])
+        def __call__(self, item, value):
+            coeff0 = self.Table0.lookup(item)
+            coeff1 = self.Table1.lookup(item)
+            new_value = coeff0 + value * (1.0 + coeff1)
+            return new_value
 
-    #     @tf.function(input_signature=[tf.TensorSpec(shape=[], dtype=tf.string)])
-    #     def __call__(self, item):
-    #         coeff = self.Table.lookup(item)
-    #         return coeff
-
-    # pred_model = PredModel()
-    # tf.saved_model.save(pred_model, export_dir='saved_pred_model')
+    pred_model = PredModel()
+    tf.saved_model.save(pred_model, export_dir='saved_pred_model')
 
 
 if __name__ == '__main__':
