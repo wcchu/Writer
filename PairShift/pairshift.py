@@ -22,11 +22,9 @@ def run():
     data = pd.read_csv(
         DATA_FILE, dtype={
             'item1': str,
-            'value1': float,
             'item2': str,
-            'value2': float
+            'dif': float
         })
-    data['dif'] = data['value2'] - data['value1']
 
     # sample data for development
     d_trash, d_use = train_test_split(data, test_size=SAMPLE_RATIO)

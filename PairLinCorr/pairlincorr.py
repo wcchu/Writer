@@ -8,7 +8,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 
-DATA_FILE = '../PairShift/input.csv'
+DATA_FILE = 'input.csv'
 SAMPLE_RATIO = 0.1
 EPOCHS = 1
 
