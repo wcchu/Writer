@@ -110,7 +110,7 @@ def run():
         model.compile(optimizer=tf.keras.optimizers.RMSprop(0.001),
                       loss='mse',
                       metrics=['mae', 'mse'],
-                      run_eagerly=True)
+                      run_eagerly=False)
         return model
 
     # create model
