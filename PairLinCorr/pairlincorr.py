@@ -12,19 +12,15 @@ DATA_FILE = 'input.csv'
 EPOCHS = 5
 
 
-def run():
-    """run"""
-
-    #
-    # import data
-    #
-    data = pd.read_csv(DATA_FILE,
-                       dtype={
-                           'item1': str,
-                           'value1': float,
-                           'item2': str,
-                           'value2': float
-                       })
+def import_data(filename):
+    data = pd.read_csv(
+        filename,
+        dtype={
+            'item1': str,
+            'value1': float,
+            'item2': str,
+            'value2': float
+        })
     data['dif'] = data['value2'] - data['value1']
     print("number of data points: {}".format(len(data)))
 
@@ -36,85 +32,126 @@ def run():
     n_items = len(items)
     print("number of unique items: {}".format(n_items))
 
-    # A utility method to create a tf.data dataset from a Pandas Dataframe
-    def df_to_dataset(dataframe, shuffle=True, batch_size=32):
-        dataframe = dataframe.copy()
-        labels = dataframe.pop('dif')
-        ds = tf.data.Dataset.from_tensor_slices((dict(dataframe), labels))
-        if shuffle:
-            ds = ds.shuffle(buffer_size=len(dataframe))
-        ds = ds.batch(batch_size)
-        return ds
+    return n_items, items, d_train, d_eval
 
-    #
-    # training and evaluation
-    #
+
+# A utility method to create a tf.data dataset from a Pandas Dataframe
+def df_to_dataset(dataframe, shuffle=True, batch_size=32):
+    dataframe = dataframe.copy()
+    labels = dataframe.pop('dif')
+    ds = tf.data.Dataset.from_tensor_slices((dict(dataframe), labels))
+    if shuffle:
+        ds = ds.shuffle(buffer_size=len(dataframe))
+    ds = ds.batch(batch_size)
+    return ds
+
+
+# PairModel is used to train variables using the paired examples
+class PairModel(tf.keras.Model):
+    '''
+    Train variables using the paired examples
+
+    Tutorial on basic structure:
+    https://www.tensorflow.org/versions/r2.0/api_docs/python/tf/keras/Model
+    '''
+
+    def __init__(self, columns):
+        super(PairModel, self).__init__()
+        self.input_item_1 = tf.keras.layers.DenseFeatures(columns['item1'])
+        self.input_value_1 = tf.keras.layers.DenseFeatures(columns['value1'])
+        self.input_item_2 = tf.keras.layers.DenseFeatures(columns['item2'])
+        self.input_value_2 = tf.keras.layers.DenseFeatures(columns['value2'])
+        self.subtracted = tf.keras.layers.Subtract(name='sub')
+        self.dense = tf.keras.layers.Dense(1, use_bias=False)
+
+    def call(self, inputs):
+        # reference part
+        hot1_item = self.input_item_1(inputs)
+        hot1 = tf.concat([
+            hot1_item,
+            tf.multiply(hot1_item, self.input_value_1(inputs))
+        ],
+            axis=1)
+        # target part
+        hot2_item = self.input_item_2(inputs)
+        hot2 = tf.concat([
+            hot2_item,
+            tf.multiply(hot2_item, self.input_value_2(inputs))
+        ],
+            axis=1)
+        # subtract the onehot of item2 from onehot of item1
+        sub = self.subtracted([hot1, hot2])
+        # simple linear regression
+        out = self.dense(sub)
+        return out
+
+
+# define model
+def create_pair_model(columns):
+    '''
+    Define pair model
+    '''
+    model = PairModel(columns)
+    model.compile(optimizer=tf.keras.optimizers.RMSprop(0.001),
+                  loss='mse',
+                  metrics=['mae', 'mse'],
+                  run_eagerly=False)
+    return model
+
+
+# make prediction model
+class PredModel(tf.Module):
+    def __init__(self, item_coefficients):
+        '''
+        Create lookup tables mapping from items to coefficients
+        '''
+        # 0-th order coefficients
+        self.Table0 = tf.lookup.StaticHashTable(
+            initializer=tf.lookup.KeyValueTensorInitializer(
+                keys=tf.constant(item_coefficients['item'], tf.string),
+                values=tf.constant(item_coefficients['c0'], tf.float32)),
+            default_value=0.0)
+        # 1st order coefficients
+        self.Table1 = tf.lookup.StaticHashTable(
+            initializer=tf.lookup.KeyValueTensorInitializer(
+                keys=tf.constant(item_coefficients['item'], tf.string),
+                values=tf.constant(item_coefficients['c1'], tf.float32)),
+            default_value=0.0)
+
+    @tf.function(
+        input_signature=[tf.TensorSpec(shape=[], dtype=tf.string),
+                         tf.TensorSpec(shape=[], dtype=tf.float32)])
+    def __call__(self, item, value):
+        coeff0 = self.Table0.lookup(item)
+        coeff1 = self.Table1.lookup(item)
+        new_value = coeff0 + value * (1.0 + coeff1)
+        return new_value
+
+
+def run():
+    """run"""
+
+    # import data
+    n_items, items, d_train, d_eval = import_data(DATA_FILE)
+
+    # build datasets
     ds_train = df_to_dataset(d_train)
     ds_eval = df_to_dataset(d_eval, shuffle=False)
 
     # columns
-    item1_col = tf.feature_column.indicator_column(
-        tf.feature_column.categorical_column_with_vocabulary_list(
-            'item1', vocabulary_list=items))
-    value1_col = tf.feature_column.numeric_column('value1')
-    item2_col = tf.feature_column.indicator_column(
-        tf.feature_column.categorical_column_with_vocabulary_list(
-            'item2', vocabulary_list=items))
-    value2_col = tf.feature_column.numeric_column('value2')
-
-    # PairModel is used to train variables using the paired examples
-    class PairModel(tf.keras.Model):
-        '''
-        Train variables using the paired examples
-
-        Tutorial on basic structure:
-        https://www.tensorflow.org/versions/r2.0/api_docs/python/tf/keras/Model
-        '''
-
-        def __init__(self):
-            super(PairModel, self).__init__()
-            self.input_item_1 = tf.keras.layers.DenseFeatures(item1_col)
-            self.input_value_1 = tf.keras.layers.DenseFeatures(value1_col)
-            self.input_item_2 = tf.keras.layers.DenseFeatures(item2_col)
-            self.input_value_2 = tf.keras.layers.DenseFeatures(value2_col)
-            self.subtracted = tf.keras.layers.Subtract(name='sub')
-            self.dense = tf.keras.layers.Dense(1, use_bias=False)
-
-        def call(self, inputs):
-            # reference part
-            hot1_item = self.input_item_1(inputs)
-            hot1 = tf.concat([
-                hot1_item,
-                tf.multiply(hot1_item, self.input_value_1(inputs))
-            ],
-                axis=1)
-            # target part
-            hot2_item = self.input_item_2(inputs)
-            hot2 = tf.concat([
-                hot2_item,
-                tf.multiply(hot2_item, self.input_value_2(inputs))
-            ],
-                axis=1)
-            # subtract the onehot of item2 from onehot of item1
-            sub = self.subtracted([hot1, hot2])
-            # simple linear regression
-            out = self.dense(sub)
-            return out
-
-    # define model
-    def create_pair_model():
-        '''
-        Define pair model
-        '''
-        model = PairModel()
-        model.compile(optimizer=tf.keras.optimizers.RMSprop(0.001),
-                      loss='mse',
-                      metrics=['mae', 'mse'],
-                      run_eagerly=False)
-        return model
+    columns = {
+        'item1': tf.feature_column.indicator_column(
+            tf.feature_column.categorical_column_with_vocabulary_list(
+                'item1', vocabulary_list=items)),
+        'value1': tf.feature_column.numeric_column('value1'),
+        'item2': tf.feature_column.indicator_column(
+            tf.feature_column.categorical_column_with_vocabulary_list(
+                'item2', vocabulary_list=items)),
+        'value2': tf.feature_column.numeric_column('value2')
+    }
 
     # create model
-    pair_model = create_pair_model()
+    pair_model = create_pair_model(columns)
 
     # train model
     pair_model.fit(ds_train, validation_data=ds_eval, epochs=EPOCHS)
@@ -132,37 +169,7 @@ def run():
     })
     item_coefficients.to_csv('item_coefficients.csv', index=False)
 
-    #
-    # make prediction model
-    #
-    class PredModel(tf.Module):
-        def __init__(self):
-            '''
-            Create lookup tables mapping from items to coefficients
-            '''
-            # 0-th order coefficients
-            self.Table0 = tf.lookup.StaticHashTable(
-                initializer=tf.lookup.KeyValueTensorInitializer(
-                    keys=tf.constant(item_coefficients['item'], tf.string),
-                    values=tf.constant(item_coefficients['c0'], tf.float32)),
-                default_value=0.0)
-            # 1st order coefficients
-            self.Table1 = tf.lookup.StaticHashTable(
-                initializer=tf.lookup.KeyValueTensorInitializer(
-                    keys=tf.constant(item_coefficients['item'], tf.string),
-                    values=tf.constant(item_coefficients['c1'], tf.float32)),
-                default_value=0.0)
-
-        @tf.function(
-            input_signature=[tf.TensorSpec(shape=[], dtype=tf.string),
-                             tf.TensorSpec(shape=[], dtype=tf.float32)])
-        def __call__(self, item, value):
-            coeff0 = self.Table0.lookup(item)
-            coeff1 = self.Table1.lookup(item)
-            new_value = coeff0 + value * (1.0 + coeff1)
-            return new_value
-
-    pred_model = PredModel()
+    pred_model = PredModel(item_coefficients)
     tf.saved_model.save(pred_model, export_dir='saved_pred_model')
 
 
