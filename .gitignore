@@ -3,3 +3,5 @@
 .Rhistory
 env/
 saved*model
+model_dir/
+checkpoints/
