@@ -65,7 +65,6 @@ def build_model(n_chars, emb_size, rnn_units, batch_size):
     return model
 
 
-# Define loss and optimizer
 def loss(responses, logits):
     '''Loss function'''
     return tf.keras.losses.sparse_categorical_crossentropy(responses,
@@ -73,10 +72,8 @@ def loss(responses, logits):
                                                            from_logits=True)
 
 
-# Define writer
 def writer(model, seed, length, temp, char_to_id, id_to_char):
     '''Write new text'''
-
     # convert seed text to id list
     input_ids = tf.expand_dims([char_to_id[c] for c in seed], 0)
 
