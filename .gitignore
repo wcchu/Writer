@@ -1,5 +1,7 @@
 .vscode
 .ipynb_checkpoints/
 .Rhistory
-python-env
+env/
 saved*model
+model_dir/
+checkpoints/
