@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-prefix=~/env-nnexpt
+prefix=env
 rm -r $prefix
-virtualenv --python=/usr/bin/python3 --system-site-packages $prefix 
+virtualenv --python=/usr/bin/python3 --system-site-packages $prefix
 source $prefix/bin/activate
 easy_install -U pip
 pip install --upgrade setuptools
