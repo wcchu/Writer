@@ -79,8 +79,8 @@ def write(seed_text=None):
     model = build_prediction_model(n_chars)
 
     # # Execute writing
-    new_text = writer(model, seed_text, WRITTEN_LEN, TEMPERATURE,
-                      char_to_id, id_to_char)
+    new_text = writer(model, seed_text, WRITTEN_LEN, TEMPERATURE, char_to_id,
+                      id_to_char)
     return new_text
 
 
