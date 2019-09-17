@@ -3,6 +3,8 @@ import logging
 # import numpy as np
 import collections
 import os
+from flask import Flask
+app = Flask(__name__)
 
 # model
 CHECKPOINT_DIR = './checkpoints'
@@ -151,8 +153,9 @@ def writer(model, seed, length, temp, char_to_id, id_to_char):
     return (seed + "".join(written))
 
 
+@app.route('/')
 def run():
-    """run"""
+    """train model and write from seed"""
 
     # import training data
     raw_data_chars, raw_data_ids, char_to_id, id_to_char = get_data(DATA_DIR)
@@ -168,12 +171,12 @@ def run():
     # generate new text
     model = build_prediction_model(n_chars)
 
-    # Execute writing
+    # # Execute writing
     new_text = writer(model, SEED_TEXT, WRITTEN_LEN, TEMPERATURE, char_to_id,
                       id_to_char)
-    print("seed and generated text: {}".format(new_text))
+    return new_text
 
 
 if __name__ == '__main__':
     logging.getLogger().setLevel(logging.WARNING)
-    run()
+    app.run()
