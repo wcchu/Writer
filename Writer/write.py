@@ -1,13 +1,9 @@
-from learn import build_model
+from learn import build_model, CHECKPOINT_DIR, EMBEDDING_SIZE, RNN_UNITS
 import tensorflow as tf
 import pickle
 from flask import Flask
 app = Flask(__name__)
 
-# model
-CHECKPOINT_DIR = './checkpoints'
-EMBEDDING_SIZE = 256
-RNN_UNITS = 1024
 
 # prediction
 SEED_TEXT = "To be honest,"
