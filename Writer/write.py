@@ -1,3 +1,4 @@
+from learn import build_model
 import tensorflow as tf
 import pickle
 from flask import Flask
@@ -12,20 +13,6 @@ RNN_UNITS = 1024
 SEED_TEXT = "To be honest,"
 WRITTEN_LEN = 200
 TEMPERATURE = 1.0
-
-
-def build_model(n_chars, emb_size, rnn_units, batch_size):
-    '''Define keras rnn model'''
-    return tf.keras.Sequential([
-        tf.keras.layers.Embedding(n_chars,
-                                  emb_size,
-                                  batch_input_shape=[batch_size, None]),
-        tf.keras.layers.LSTM(rnn_units,
-                             return_sequences=True,
-                             stateful=True,
-                             recurrent_initializer='glorot_uniform'),
-        tf.keras.layers.Dense(n_chars)
-    ])
 
 
 def build_prediction_model(nc):
