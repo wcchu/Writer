@@ -49,9 +49,13 @@ def writer(model, seed, length, temp, char_to_id, id_to_char):
 
 @app.route('/')
 @app.route('/<string:seed_text>')
-def write(seed_text=None):
+@app.route('/<string:seed_text>/<int:written_len>')
+@app.route('/<string:seed_text>/<int:written_len>/<float:temperature>')
+def write(seed_text=None, written_len=None, temperature=None):
 
     seed_text = seed_text or SEED_TEXT
+    written_len = written_len or WRITTEN_LEN
+    temperature = temperature or TEMPERATURE
 
     # load pickles
     n_chars = pickle.load(open('n_chars.pk', 'rb'))
@@ -62,7 +66,7 @@ def write(seed_text=None):
     model = build_prediction_model(n_chars)
 
     # # Execute writing
-    new_text = writer(model, seed_text, WRITTEN_LEN, TEMPERATURE, char_to_id,
+    new_text = writer(model, seed_text, written_len, temperature, char_to_id,
                       id_to_char)
     return new_text
 
