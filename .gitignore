@@ -6,3 +6,4 @@ saved*model
 model_dir/
 checkpoints/
 *.pk
+.pytest_cache
