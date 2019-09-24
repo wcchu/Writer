@@ -3,6 +3,7 @@ import logging
 # import numpy as np
 import collections
 import os
+import pickle
 
 # model
 CHECKPOINT_DIR = './checkpoints'
@@ -15,11 +16,6 @@ EPOCHS = 1
 TIME_STEPS = 200
 BATCH_SIZE = 64
 BUFFER_SIZE = 10000
-
-# prediction
-SEED_TEXT = "To be honest,"
-WRITTEN_LEN = 200
-TEMPERATURE = 1.0
 
 
 def get_data(data_path=None):
@@ -68,7 +64,7 @@ def preprocess(d):
 
 def build_model(n_chars, emb_size, rnn_units, batch_size):
     '''Define keras rnn model'''
-    model = tf.keras.Sequential([
+    return tf.keras.Sequential([
         tf.keras.layers.Embedding(n_chars,
                                   emb_size,
                                   batch_input_shape=[batch_size, None]),
@@ -78,7 +74,6 @@ def build_model(n_chars, emb_size, rnn_units, batch_size):
                              recurrent_initializer='glorot_uniform'),
         tf.keras.layers.Dense(n_chars)
     ])
-    return model
 
 
 def loss(responses, logits):
@@ -115,44 +110,7 @@ def train_model(data, nc):
     model.summary()
 
 
-def build_prediction_model(nc):
-    # Rebulid model with batch size = 1
-    model = build_model(n_chars=nc,
-                        emb_size=EMBEDDING_SIZE,
-                        rnn_units=RNN_UNITS,
-                        batch_size=1)
-    # import trained weights
-    model.load_weights(tf.train.latest_checkpoint(CHECKPOINT_DIR))
-    # model for prediction
-    model.build(tf.TensorShape([1, None]))
-    return model
-
-
-def writer(model, seed, length, temp, char_to_id, id_to_char):
-    '''Write new text'''
-    # convert seed text to id list
-    input_ids = tf.expand_dims([char_to_id[c] for c in seed], 0)
-
-    # storage for written text
-    written = []
-
-    model.reset_states()
-    for k in range(length):
-        pred = tf.squeeze(model(input_ids), 0) / temp
-
-        # predict the last id returned by the model
-        pred_id = tf.random.categorical(pred, num_samples=1)[-1, 0].numpy()
-
-        # pass predicted ids as the input of the next prediction
-        input_ids = tf.expand_dims([pred_id], 0)
-
-        written.append(id_to_char[pred_id])
-
-    return (seed + "".join(written))
-
-
 def run():
-    """run"""
 
     # import training data
     raw_data_chars, raw_data_ids, char_to_id, id_to_char = get_data(DATA_DIR)
@@ -165,13 +123,10 @@ def run():
     # build and train model
     train_model(ds_train, n_chars)
 
-    # generate new text
-    model = build_prediction_model(n_chars)
-
-    # Execute writing
-    new_text = writer(model, SEED_TEXT, WRITTEN_LEN, TEMPERATURE, char_to_id,
-                      id_to_char)
-    print("seed and generated text: {}".format(new_text))
+    # pickle
+    pickle.dump(n_chars, open('n_chars.pk', 'wb'))
+    pickle.dump(char_to_id, open('char_to_id.pk', 'wb'))
+    pickle.dump(id_to_char, open('id_to_char.pk', 'wb'))
 
 
 if __name__ == '__main__':

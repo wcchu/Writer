@@ -15,4 +15,5 @@ pip install --ignore-installed --no-cache-dir --upgrade \
         cython \
         testresources \
         jupyter \
-        tensorflow==2.0.0-beta1
+        tensorflow==2.0.0-rc1 \
+	Flask
