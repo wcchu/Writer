@@ -7,3 +7,4 @@ model_dir/
 checkpoints/
 *.pk
 .pytest_cache
+__pycache__/
