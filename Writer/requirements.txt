@@ -1,2 +1,3 @@
 tensorflow
 Flask
+google-cloud-storage

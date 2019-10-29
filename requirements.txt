@@ -10,3 +10,4 @@ testresources
 jupyter
 tensorflow
 Flask
+google-cloud-storage

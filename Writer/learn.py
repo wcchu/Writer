@@ -6,7 +6,7 @@ import os
 import pickle
 
 # model
-CHECKPOINT_DIR = './checkpoints'
+CHECKPOINT_DIR = 'checkpoints'
 EMBEDDING_SIZE = 256
 RNN_UNITS = 1024
 
