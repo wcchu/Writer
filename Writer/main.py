@@ -2,7 +2,6 @@ from flask import Flask
 # from google.cloud import storage
 from learn import build_model, CHECKPOINT_DIR, EMBEDDING_SIZE, RNN_UNITS
 import logging
-import os
 import pickle
 import tensorflow as tf
 app = Flask(__name__)
@@ -20,9 +19,8 @@ def build_prediction_model(nc):
                         rnn_units=RNN_UNITS,
                         batch_size=1)
     # import trained weights
-    if os.path.isfile(CHECKPOINT_DIR):
-        # CHECKPOINT_DIR should change to get the GS dir directly.
-        model.load_weights(tf.train.latest_checkpoint(CHECKPOINT_DIR))
+    # CHECKPOINT_DIR should change to get the GS dir directly.
+    model.load_weights(tf.train.latest_checkpoint(CHECKPOINT_DIR))
 
     # model for prediction
     model.build(tf.TensorShape([1, None]))

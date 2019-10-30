@@ -7,8 +7,8 @@ import pickle
 
 # model
 CHECKPOINT_DIR = 'checkpoints'
-EMBEDDING_SIZE = 256
-RNN_UNITS = 1024
+EMBEDDING_SIZE = 128
+RNN_UNITS = 512
 
 # training
 DATA_DIR = "bible.txt"
