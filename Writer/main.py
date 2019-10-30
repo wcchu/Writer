@@ -1,9 +1,8 @@
-from learn import build_model, CHECKPOINT_DIR, EMBEDDING_SIZE, RNN_UNITS
-import tensorflow as tf
-import pickle
 from flask import Flask
+from learn import build_model, CHECKPOINT_DIR, EMBEDDING_SIZE, RNN_UNITS
+import pickle
+import tensorflow as tf
 app = Flask(__name__)
-
 
 # prediction
 SEED_TEXT = "To be honest,"
