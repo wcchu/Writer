@@ -8,3 +8,4 @@ checkpoints/
 *.pk
 .pytest_cache
 __pycache__/
+*.json
