@@ -6,7 +6,8 @@ app = Flask(__name__)
 
 # prediction
 SEED_TEXT = "To be honest,"
-WRITTEN_LEN = 200
+MIN_LEN = 200
+MAX_LEN = 400
 TEMPERATURE = 1.0
 
 
@@ -23,16 +24,16 @@ def build_prediction_model(nc):
     return model
 
 
-def writer(model, seed, length, temp, char_to_id, id_to_char):
+def writer(model, seed, lmin, lmax, temp, char_to_id, id_to_char):
     '''Write new text'''
     # convert seed text to id list
     input_ids = tf.expand_dims([char_to_id[c] for c in seed], 0)
 
-    # storage for written text
-    written = []
+    # initial written text
+    written = seed
 
     model.reset_states()
-    for k in range(length):
+    for k in range(lmax):
         pred = tf.squeeze(model(input_ids), 0) / temp
 
         # predict the last id returned by the model
@@ -41,20 +42,28 @@ def writer(model, seed, length, temp, char_to_id, id_to_char):
         # pass predicted ids as the input of the next prediction
         input_ids = tf.expand_dims([pred_id], 0)
 
-        written.append(id_to_char[pred_id])
+        # get the last character and attach it to text
+        pred_char = id_to_char[pred_id]
+        written = written + pred_char
 
-    return (seed + "".join(written))
+        # if at least lmin and on a period (.), stop writing
+        if len(written) >= lmin and pred_char == ".":
+            break
+
+    return written
 
 
 @app.route('/')
 @app.route('/<string:seed_text>')
-@app.route('/<string:seed_text>/<int:written_len>')
-@app.route('/<string:seed_text>/<int:written_len>/<float:temperature>')
-def write(seed_text=None, written_len=None, temperature=None):
+@app.route('/<string:seed_text>/<int:min_len>')
+@app.route('/<string:seed_text>/<int:min_len>/<int:max_len>')
+@app.route('/<string:seed_text>/<int:min_len>/<int:max_len>/<float:temp>')
+def write(seed_text=None, min_len=None, max_len=None, temp=None):
 
     seed_text = seed_text or SEED_TEXT
-    written_len = written_len or WRITTEN_LEN
-    temperature = temperature or TEMPERATURE
+    min_len = min_len or MIN_LEN
+    max_len = max_len or MAX_LEN
+    temp = temp or TEMPERATURE
 
     # load pickles
     n_chars = pickle.load(open('n_chars.pk', 'rb'))
@@ -65,7 +74,7 @@ def write(seed_text=None, written_len=None, temperature=None):
     model = build_prediction_model(n_chars)
 
     # # Execute writing
-    new_text = writer(model, seed_text, written_len, temperature, char_to_id,
+    new_text = writer(model, seed_text, min_len, max_len, temp, char_to_id,
                       id_to_char)
     return new_text
 
