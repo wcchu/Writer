@@ -12,4 +12,4 @@ Run `python learn.py` to build the model and save it in the checkpoint directory
 
 Run `python main.py` to deploy the writer locally. Open browser with `localhost:5000/seed_text/written_len/temperature` (suppose default port is 5000) where `seed_text`, `written_len`, and `temperature` are optional input parameters; if they are not defined in the url, the default values in the beginning part of `main.py` code will be taken.
 
-The model is also deployed to Google App Engine with the endpoint https://writer-01.appspot.com/.
+The model is also deployed to Google App Engine with the endpoint https://writer-01.appspot.com/. I expect the traffic to be very low so the daily spending limit is set to 1 USD. The access to the app might fail due to this limit.
