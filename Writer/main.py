@@ -5,7 +5,7 @@ import tensorflow as tf
 app = Flask(__name__)
 
 # prediction
-SEED_TEXT = "To be honest,"
+SEED_TEXT = "In the beginning"
 MIN_LEN = 200
 MAX_LEN = 1000
 TEMPERATURE = 1.0
@@ -54,11 +54,11 @@ def writer(model, seed, lmin, lmax, temp, char_to_id, id_to_char):
 
 
 @app.route('/')
-@app.route('/<string:seed_text>')
-@app.route('/<string:seed_text>/<float:temp>')
-@app.route('/<string:seed_text>/<float:temp>/<int:min_len>')
-@app.route('/<string:seed_text>/<float:temp>/<int:min_len>/<int:max_len>')
-def write(seed_text=None, temp=None, min_len=None, max_len=None):
+@app.route('/<float:temp>')
+@app.route('/<float:temp>/<string:seed_text>')
+@app.route('/<float:temp>/<string:seed_text>/<int:min_len>')
+@app.route('/<float:temp>/<string:seed_text>/<int:min_len>/<int:max_len>')
+def write(temp=None, seed_text=None, min_len=None, max_len=None):
 
     seed_text = seed_text or SEED_TEXT
     min_len = min_len or MIN_LEN
