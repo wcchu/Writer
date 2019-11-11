@@ -10,6 +10,7 @@ import tensorflow as tf
 
 DATA_FILE = 'input.csv'
 EPOCHS = 5
+CEN_VALUE = 25.0
 
 
 def import_data(filename):
@@ -55,7 +56,7 @@ class PairModel(tf.keras.Model):
     https://www.tensorflow.org/versions/r2.0/api_docs/python/tf/keras/Model
     '''
 
-    def __init__(self, columns):
+    def __init__(self, columns, v0):
         super(PairModel, self).__init__()
         self.input_item_1 = tf.keras.layers.DenseFeatures(columns['item1'])
         self.input_value_1 = tf.keras.layers.DenseFeatures(columns['value1'])
@@ -63,20 +64,21 @@ class PairModel(tf.keras.Model):
         self.input_value_2 = tf.keras.layers.DenseFeatures(columns['value2'])
         self.subtracted = tf.keras.layers.Subtract(name='sub')
         self.dense = tf.keras.layers.Dense(1, use_bias=False)
+        self.cen_value = tf.constant(v0, dtype=tf.float32)
 
     def call(self, inputs):
         # reference part
         hot1_item = self.input_item_1(inputs)
         hot1 = tf.concat([
             hot1_item,
-            tf.multiply(hot1_item, self.input_value_1(inputs))
+            tf.multiply(hot1_item, self.input_value_1(inputs) - self.cen_value)
         ],
             axis=1)
         # target part
         hot2_item = self.input_item_2(inputs)
         hot2 = tf.concat([
             hot2_item,
-            tf.multiply(hot2_item, self.input_value_2(inputs))
+            tf.multiply(hot2_item, self.input_value_2(inputs) - self.cen_value)
         ],
             axis=1)
         # subtract the onehot of item2 from onehot of item1
@@ -87,12 +89,12 @@ class PairModel(tf.keras.Model):
 
 
 # define model
-def create_pair_model(columns):
+def create_pair_model(columns, v0):
     '''
     Define pair model
     '''
-    model = PairModel(columns)
-    model.compile(optimizer=tf.keras.optimizers.RMSprop(0.001),
+    model = PairModel(columns, v0)
+    model.compile(optimizer=tf.keras.optimizers.Ftrl(0.2),
                   loss='mse',
                   metrics=['mae', 'mse'],
                   run_eagerly=False)
@@ -101,7 +103,7 @@ def create_pair_model(columns):
 
 # make prediction model
 class PredModel(tf.Module):
-    def __init__(self, item_coefficients):
+    def __init__(self, item_coefficients, v0):
         '''
         Create lookup tables mapping from items to coefficients
         '''
@@ -117,6 +119,8 @@ class PredModel(tf.Module):
                 keys=tf.constant(item_coefficients['item'], tf.string),
                 values=tf.constant(item_coefficients['c1'], tf.float32)),
             default_value=0.0)
+        # central value to subtract
+        self.cen_value = tf.constant(v0, dtype=tf.float32)
 
     @tf.function(
         input_signature=[tf.TensorSpec(shape=[], dtype=tf.string),
@@ -124,7 +128,7 @@ class PredModel(tf.Module):
     def __call__(self, item, value):
         coeff0 = self.Table0.lookup(item)
         coeff1 = self.Table1.lookup(item)
-        new_value = coeff0 + value * (1.0 + coeff1)
+        new_value = value + coeff0 + coeff1 * (value - self.cen_value)
         return new_value
 
 
@@ -151,7 +155,7 @@ def run():
     }
 
     # create model
-    pair_model = create_pair_model(columns)
+    pair_model = create_pair_model(columns, CEN_VALUE)
 
     # train model
     pair_model.fit(ds_train, validation_data=ds_eval, epochs=EPOCHS)
@@ -169,7 +173,7 @@ def run():
     })
     item_coefficients.to_csv('item_coefficients.csv', index=False)
 
-    pred_model = PredModel(item_coefficients)
+    pred_model = PredModel(item_coefficients, CEN_VALUE)
     tf.saved_model.save(pred_model, export_dir='saved_pred_model')
 
 
