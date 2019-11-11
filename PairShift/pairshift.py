@@ -50,7 +50,7 @@ def create_pair_model(columns):
     '''
     model = PairModel(columns)
     model.compile(
-        optimizer=tf.keras.optimizers.RMSprop(0.001),
+        optimizer=tf.keras.optimizers.Ftrl(0.2),
         loss='mse',
         metrics=['mae', 'mse'],
         run_eagerly=False)
