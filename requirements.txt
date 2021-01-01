@@ -2,5 +2,4 @@ flake8
 yapf
 cython
 testresources
-tensorflow==2.4.0
 Flask
