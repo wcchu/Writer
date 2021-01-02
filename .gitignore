@@ -4,7 +4,7 @@
 env/
 saved*model
 model_dir/
-checkpoints_*/
+checkpoints/
 *.pk
 .pytest_cache
 __pycache__/
