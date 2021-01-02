@@ -5,7 +5,7 @@ echo "training model..."
 python learn.py
 
 # deployment
-echo "deploying model locally (port = 5000)"
+echo "deploying model locally..."
 python main.py
 
 echo "done"
