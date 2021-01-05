@@ -1,0 +1,44 @@
+steps:
+
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args:
+  - '-c'
+  - |
+    docker pull gcr.io/writer-01/writer:branch-$BRANCH_NAME \
+    || docker pull gcr.io/writer-01/writer:branch-master \
+    || true
+  id: 'pull_writer'
+
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+    [
+      'build',
+      '-t', 'gcr.io/writer-01/writer:branch-$BRANCH_NAME',
+      '-t', 'gcr.io/writer-01/writer:commit-$SHORT_SHA',
+      '-f', 'Dockerfile',
+      '.',
+    ]
+  id: 'build_writer'
+  waitFor: ['pull_writer']
+
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args:
+  - '-c'
+  - |
+    docker push gcr.io/writer-01/writer:branch-$BRANCH_NAME \
+    && docker push gcr.io/writer-01/writer:commit-$SHORT_SHA
+  id: 'push_writer'
+  waitFor: ['build_writer']
+
+# - name: 'gcr.io/$PROJECT_ID/offset-builder:commit-$SHORT_SHA'
+#   entrypoint: 'bash'
+#   args:
+#   - '-c'
+#   - |
+#     source /apps/shoes/.venv/bin/activate && make shoes_prediction_test
+#   id: 'tests_offset-builder'
+#   waitFor: ['push_offset-builder']
+
+  # args: ['app', 'deploy', '--project=writer-01', '--version=$SHORT_SHA']
