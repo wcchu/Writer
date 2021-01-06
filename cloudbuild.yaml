@@ -32,13 +32,13 @@ steps:
   id: 'push_writer'
   waitFor: ['build_writer']
 
-# - name: 'gcr.io/$PROJECT_ID/writer:commit-$SHORT_SHA'
-#   entrypoint: 'bash'
-#   args:
-#   - '-c'
-#   - |
-#     source /apps/shoes/.venv/bin/activate && make shoes_prediction_test
-#   id: 'tests_offset-builder'
-#   waitFor: ['push_offset-builder']
+- name: 'gcr.io/$PROJECT_ID/writer:commit-$SHORT_SHA'
+  entrypoint: 'bash'
+  args:
+  - '-c'
+  - |
+    ./docker.sh
+  id: 'train_writer'
+  waitFor: ['push_writer']
 
 # args: ['app', 'deploy', '--project=$PROJECT_ID', '--version=$SHORT_SHA']
