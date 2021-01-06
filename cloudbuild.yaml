@@ -5,8 +5,8 @@ steps:
   args:
   - '-c'
   - |
-    docker pull gcr.io/writer-01/writer:branch-$BRANCH_NAME \
-    || docker pull gcr.io/writer-01/writer:branch-master \
+    docker pull gcr.io/$PROJECT_ID/writer:branch-$BRANCH_NAME \
+    || docker pull gcr.io/$PROJECT_ID/writer:branch-master \
     || true
   id: 'pull_writer'
 
@@ -14,8 +14,8 @@ steps:
   args:
     [
       'build',
-      '-t', 'gcr.io/writer-01/writer:branch-$BRANCH_NAME',
-      '-t', 'gcr.io/writer-01/writer:commit-$SHORT_SHA',
+      '-t', 'gcr.io/$PROJECT_ID/writer:branch-$BRANCH_NAME',
+      '-t', 'gcr.io/$PROJECT_ID/writer:commit-$SHORT_SHA',
       '-f', 'Dockerfile',
       '.',
     ]
@@ -27,12 +27,12 @@ steps:
   args:
   - '-c'
   - |
-    docker push gcr.io/writer-01/writer:branch-$BRANCH_NAME \
-    && docker push gcr.io/writer-01/writer:commit-$SHORT_SHA
+    docker push gcr.io/$PROJECT_ID/writer:branch-$BRANCH_NAME \
+    && docker push gcr.io/$PROJECT_ID/writer:commit-$SHORT_SHA
   id: 'push_writer'
   waitFor: ['build_writer']
 
-# - name: 'gcr.io/$PROJECT_ID/offset-builder:commit-$SHORT_SHA'
+# - name: 'gcr.io/$PROJECT_ID/writer:commit-$SHORT_SHA'
 #   entrypoint: 'bash'
 #   args:
 #   - '-c'
@@ -41,4 +41,4 @@ steps:
 #   id: 'tests_offset-builder'
 #   waitFor: ['push_offset-builder']
 
-  # args: ['app', 'deploy', '--project=writer-01', '--version=$SHORT_SHA']
+# args: ['app', 'deploy', '--project=$PROJECT_ID', '--version=$SHORT_SHA']
