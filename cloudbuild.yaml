@@ -32,15 +32,3 @@ steps:
   id: 'push_writer'
   waitFor: ['build_writer']
 
-# the following should be controlled by kubernetes instead of every push
-
-# - name: 'gcr.io/$PROJECT_ID/writer:commit-$SHORT_SHA'
-#   entrypoint: 'bash'
-#   args:
-#   - '-c'
-#   - |
-#     ./docker.sh
-#   id: 'train_writer'
-#   waitFor: ['push_writer']
-
-# args: ['app', 'deploy', '--project=$PROJECT_ID', '--version=$SHORT_SHA']
