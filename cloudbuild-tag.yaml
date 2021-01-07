@@ -1,0 +1,13 @@
+steps:
+
+- name: 'gcr.io/$PROJECT_ID/writer:commit-$SHORT_SHA'
+  entrypoint: 'bash'
+  args:
+  - '-c'
+  - |
+    ./docker.sh
+  id: 'train_writer'
+  timeout: 1800s
+
+# args: ['app', 'deploy', '--project=$PROJECT_ID', '--version=$SHORT_SHA']
+
