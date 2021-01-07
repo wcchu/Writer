@@ -5,11 +5,8 @@ steps:
   args:
   - '-c'
   - |
-    ./docker.sh
+    ./train.sh
   id: 'train_writer'
 
-# 30 mins
-timeout: 1800s
-
-# args: ['app', 'deploy', '--project=$PROJECT_ID', '--version=$SHORT_SHA']
-
+# 60 mins
+timeout: 3600s
