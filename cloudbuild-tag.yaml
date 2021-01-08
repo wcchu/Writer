@@ -1,0 +1,12 @@
+steps:
+
+- name: 'gcr.io/$PROJECT_ID/writer:commit-$SHORT_SHA'
+  entrypoint: 'bash'
+  args:
+  - '-c'
+  - |
+    ./train.sh
+  id: 'train_writer'
+
+# 60 mins
+timeout: 3600s

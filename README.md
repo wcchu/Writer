@@ -16,5 +16,9 @@ The model is also deployed to Google App Engine at https://writer-01.appspot.com
 
 ## Docker
 
-Running `docker-compose up --build` builds the image and starts the container that trains and deploys the model.
+Running `docker-compose up --build` builds the image and starts the container that trains and deploys the model locally.
 
+## Google Cloud
+
+- `cloudbuild.yaml` defines that every push to Github triggers building an image based on Dockerfile
+- `cloudbuild-tag.yaml` defines that every tagged push to Github triggers training the model and uploading the result to Google Storage
