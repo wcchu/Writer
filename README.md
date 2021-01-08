@@ -1,6 +1,6 @@
 # Writer
 
-Use RNN with LSTM to generate new text in TensorFlow 2.0.
+Use RNN with LSTM to generate new text in TensorFlow 2.
 
 ## Training
 
