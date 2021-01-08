@@ -8,3 +8,4 @@ services:
       - "5000:5000"
     network_mode: "host"
     stdin_open: true
+    command: ./run_local.sh

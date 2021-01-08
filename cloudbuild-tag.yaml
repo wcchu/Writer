@@ -5,8 +5,8 @@ steps:
   args:
   - '-c'
   - |
-    ./train.sh
-  id: 'train_writer'
+    ./run-cloud.sh
+  id: 'train_and_deploy_writer'
 
-# 60 mins
-timeout: 3600s
+# 90 mins
+timeout: 5400s
