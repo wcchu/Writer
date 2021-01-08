@@ -18,6 +18,7 @@ echo "uploading model..."
 gsutil cp *.pk gs://writer-training/${now}/
 gsutil cp -r checkpoints gs://writer-training/${now}/
 
-# TODO: deploy to google app engine
+# deploy to google app engine
+gcloud app deploy
 
 echo "done"
