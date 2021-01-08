@@ -1,6 +1,6 @@
 # Writer
 
-Use RNN with LSTM to generate new text in TensorFlow 2.0.
+Use RNN with LSTM to generate new text in TensorFlow 2.
 
 ## Training
 
@@ -20,5 +20,5 @@ Running `docker-compose up --build` builds the image and starts the container th
 
 ## Google Cloud
 
-- `cloudbuild.yaml` defines that every push to Github triggers building an image based on Dockerfile
-- `cloudbuild-tag.yaml` defines that every tagged push to Github triggers training the model and uploading the result to Google Storage
+- Defined in `cloudbuild.yaml`, every push triggers to build an image based on Dockerfile
+- Defined in `cloudbuild-tag.yaml`, every tagged push triggers a training of the model and deployment to Google App Engine
