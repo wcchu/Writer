@@ -1,4 +1,4 @@
-FROM tensorflow/tensorflow:2.4.0
+FROM python:3.8
 WORKDIR /app
 COPY . .
 
