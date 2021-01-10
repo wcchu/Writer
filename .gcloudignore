@@ -1,3 +1,5 @@
-checkpoints_*/
+__pycache__/
+.git/
 bible*.txt
 *.json
+README.md
