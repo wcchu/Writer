@@ -1,6 +1,2 @@
-tensorflow
-flake8
-yapf
-cython
-testresources
 Flask
+tensorflow
