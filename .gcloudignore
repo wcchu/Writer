@@ -1,4 +1,6 @@
 checkpoints/
+__pycache__/
+.git/
 bible*.txt
 *.json
 README.md
