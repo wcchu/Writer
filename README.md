@@ -4,7 +4,10 @@ Use RNN with LSTM to generate new text in TensorFlow 2.
 
 ## Training
 
-The training data (`bible.txt`) is the text of the King James Bible (https://www.kingjamesbibleonline.org/). The first 1000 lines are separately prepared in `bible_1000.txt` for a quick trial.
+There are two datasets prepared as the training data.
+
+1. The dataset `bible.txt` is the text of the King James Bible (https://www.kingjamesbibleonline.org/). The first 1000 lines are separately prepared in `bible_1000.txt` for a quick trial.
+2. The dataset `trump.txt` is the collection of tweets by Donald Trump until 2021-01-08 15:44:28, sourced from https://www.thetrumparchive.com/. Note that emojis have been removed from `trump.txt` in the way suggested in https://stackoverflow.com/a/44905730.
 
 Run `python learn.py` to build the model and save it in the checkpoint directory. All parameters are defined in the beginning part of the `learn.py` code.
 
