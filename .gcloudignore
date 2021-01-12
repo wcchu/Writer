@@ -1,5 +1,9 @@
 __pycache__/
 .git/
-bible*.txt
+*.csv
+*.txt
 *.json
 README.md
+*.R
+.RData
+.Rhistory
