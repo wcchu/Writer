@@ -1,6 +1,7 @@
 .vscode
 .ipynb_checkpoints/
 .Rhistory
+.RData
 env/
 saved*model
 model_dir/
