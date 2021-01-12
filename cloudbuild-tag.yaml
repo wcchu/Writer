@@ -8,5 +8,5 @@ steps:
     ./run-cloud.sh
   id: 'train_and_deploy_writer'
 
-# 90 mins
-timeout: 5400s
+# 2 hours
+timeout: 7200s
