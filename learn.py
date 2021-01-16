@@ -11,7 +11,7 @@ EMBEDDING_SIZE = 128
 RNN_UNITS = 512
 
 # training
-DATA_DIR = "trump.txt"
+DATA_DIR = "data/data.txt"
 EPOCHS = 3
 TIME_STEPS = 200
 BATCH_SIZE = 64
