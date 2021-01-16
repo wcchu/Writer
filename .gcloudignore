@@ -1,8 +1,7 @@
 __pycache__/
 .git/
 *.csv
-bible*.txt
-trump*.txt
+data/
 *.json
 README.md
 *.R
