@@ -12,7 +12,7 @@ RNN_UNITS = 512
 
 # training
 DATA_DIR = "data/data.txt"
-EPOCHS = 3
+EPOCHS = 1
 TIME_STEPS = 200
 BATCH_SIZE = 64
 BUFFER_SIZE = 10000
