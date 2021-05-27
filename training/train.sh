@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+TIME=$(date +"%F-%T")
+GSDIR="gs://writer-training"
+
 # set up gcloud
 export PATH=/usr/local/google-cloud-sdk/bin:$PATH
 . .bashrc
@@ -12,12 +15,9 @@ gcloud auth activate-service-account --key-file=writer-app-engine.json
 echo "training model..."
 python learn.py
 
-# deploy to google app engine
-echo "deploying service to app engine..."
-gcloud app deploy
-
-# deploy to local
-echo "deploying service locally..."
-python main.py
+# upload model
+echo "uploading model..."
+gsutil -m cp *.pk ${GSDIR}/${TIME}/
+gsutil -m cp -r ${GSDIR}/${TIME}/* ${GSDIR}/latest/
 
 echo "done"

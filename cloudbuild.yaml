@@ -1,33 +1,69 @@
 steps:
 
+# training
+
 - name: 'gcr.io/cloud-builders/docker'
   entrypoint: 'bash'
   args:
   - '-c'
   - |
-    docker pull gcr.io/$PROJECT_ID/writer:branch-$BRANCH_NAME \
-    || docker pull gcr.io/$PROJECT_ID/writer:branch-master \
+    docker pull gcr.io/$PROJECT_ID/writer-training:branch-$BRANCH_NAME \
+    || docker pull gcr.io/$PROJECT_ID/writer-training:branch-master \
     || true
-  id: 'pull_writer'
+  id: 'pull_writer-training'
 
 - name: 'gcr.io/cloud-builders/docker'
   args:
     [
       'build',
-      '-t', 'gcr.io/$PROJECT_ID/writer:branch-$BRANCH_NAME',
-      '-t', 'gcr.io/$PROJECT_ID/writer:commit-$SHORT_SHA',
-      '-f', 'Dockerfile',
+      '-t', 'gcr.io/$PROJECT_ID/writer-training:branch-$BRANCH_NAME',
+      '-t', 'gcr.io/$PROJECT_ID/writer-training:commit-$SHORT_SHA',
+      '-f', 'training/Dockerfile',
       '.',
     ]
-  id: 'build_writer'
-  waitFor: ['pull_writer']
+  id: 'build_writer-training'
+  waitFor: ['pull_writer-training']
 
 - name: 'gcr.io/cloud-builders/docker'
   entrypoint: 'bash'
   args:
   - '-c'
   - |
-    docker push gcr.io/$PROJECT_ID/writer:branch-$BRANCH_NAME \
-    && docker push gcr.io/$PROJECT_ID/writer:commit-$SHORT_SHA
-  id: 'push_writer'
-  waitFor: ['build_writer']
+    docker push gcr.io/$PROJECT_ID/writer-training:branch-$BRANCH_NAME \
+    && docker push gcr.io/$PROJECT_ID/writer-training:commit-$SHORT_SHA
+  id: 'push_writer-training'
+  waitFor: ['build_writer-training']
+
+# deployment
+
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args:
+  - '-c'
+  - |
+    docker pull gcr.io/$PROJECT_ID/writer-deployment:branch-$BRANCH_NAME \
+    || docker pull gcr.io/$PROJECT_ID/writer-deployment:branch-master \
+    || true
+  id: 'pull_writer-deployment'
+
+- name: 'gcr.io/cloud-builders/docker'
+  args:
+    [
+      'build',
+      '-t', 'gcr.io/$PROJECT_ID/writer-deployment:branch-$BRANCH_NAME',
+      '-t', 'gcr.io/$PROJECT_ID/writer-deployment:commit-$SHORT_SHA',
+      '-f', 'deployment/Dockerfile',
+      '.',
+    ]
+  id: 'build_writer-deployment'
+  waitFor: ['pull_writer-deployment']
+
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'bash'
+  args:
+  - '-c'
+  - |
+    docker push gcr.io/$PROJECT_ID/writer-deployment:branch-$BRANCH_NAME \
+    && docker push gcr.io/$PROJECT_ID/writer-deployment:commit-$SHORT_SHA
+  id: 'push_writer-deployment'
+  waitFor: ['build_writer-deployment']

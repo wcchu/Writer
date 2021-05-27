@@ -1,12 +1,12 @@
 steps:
 
-- name: 'gcr.io/$PROJECT_ID/writer:commit-$SHORT_SHA'
+- name: 'gcr.io/$PROJECT_ID/writer-training:commit-$SHORT_SHA'
   entrypoint: 'bash'
   args:
   - '-c'
   - |
-    ./run-cloud.sh
-  id: 'train_and_deploy_writer'
+    ./train.sh
+  id: 'train_writer'
 
 # 2 hours
 timeout: 7200s
