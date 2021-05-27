@@ -1,5 +1,6 @@
 from flask import Flask
 from learn import build_model, CHECKPOINT_DIR, EMBEDDING_SIZE, RNN_UNITS
+# TODO: move constants to env variables
 import pickle
 import tensorflow as tf
 app = Flask(__name__)
