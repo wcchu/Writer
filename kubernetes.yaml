@@ -8,9 +8,14 @@ spec:
       name: writer
     spec:
       containers:
-      - image: gcr.io/writer-01/writer:v1.2.0
-        env:
-        - name: name
-          value: value
-        name: writer
+      - name: writer
+        image: gcr.io/writer-01/writer:v1.2.4
+        volumeMounts:
+        - name: secrets
+          mountPath: "/secrets"
+          readOnly: true
+      volumes:
+      - name: secrets
+        secret:
+          secretName: writer-service-account
       restartPolicy: Never
