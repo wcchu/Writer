@@ -31,3 +31,6 @@ steps:
     && docker push gcr.io/$PROJECT_ID/writer:commit-$SHORT_SHA
   id: 'push_writer'
   waitFor: ['build_writer']
+
+# 30 mins
+timeout: 1800s
