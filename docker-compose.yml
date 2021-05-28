@@ -1,6 +1,7 @@
 version: '3'
 services:
   writer:
+    image: writer
     build:
       context: .
       dockerfile: Dockerfile
