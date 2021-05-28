@@ -11,4 +11,4 @@ RUN curl --silent https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/goo
 
 COPY . .
 
-CMD ./run-cloud.sh
+CMD ./docker.sh
