@@ -1,0 +1,53 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  # labels:
+  #   run: offset-builder
+  name: writer
+spec:
+  # completions: 1
+  # parallelism: 1
+  template:
+    metadata:
+      name: writer
+    spec:
+      # serviceAccountName: offset-builder
+      containers:
+      - image: gcr.io/$PROJECT_ID/writer:v1.1.7
+      # - image: gcr.io/fitanalytics-ds-dev/offset-builder:v5.3.1
+        # imagePullPolicy: Always
+        env:
+        - name: name
+          value: value
+        name: writer
+      #   ports:
+      #   - containerPort: 22
+      #     protocol: TCP
+      #   resources:
+      #     limits:
+      #       memory: 20Gi
+      #     requests:
+      #       memory: 20Gi
+      #   terminationMessagePath: /dev/termination-log
+      #   volumeMounts:
+      #   - mountPath: /scratch
+      #     name: data
+      #   - mountPath: /secrets
+      #     name: secrets
+      # dnsPolicy: ClusterFirst
+      # nodeSelector:
+      #   cloud.google.com/gke-nodepool: ds-dev-c2-standard-8
+      # restartPolicy: Never
+      # tolerations:
+      # - key: "machine-type"
+      #   operator: "Equal"
+      #   value: "c2-standard-8"
+      # securityContext: {}
+      # terminationGracePeriodSeconds: 30
+      # volumes:
+      # - name: data
+      #   persistentVolumeClaim:
+      #     claimName: offset-builder
+      # - name: secrets
+      #   secret:
+      #     secretName: offset-builder-env-v4
