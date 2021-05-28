@@ -1,10 +1,6 @@
 __pycache__/
 .git/
-*.csv
 data/
 *.json
 README.md
-*.R
-.RData
-.Rhistory
 *.sh

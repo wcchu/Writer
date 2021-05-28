@@ -1,12 +1,5 @@
-.vscode
-.ipynb_checkpoints/
-.Rhistory
-.RData
 env/
-saved*model
-model_dir/
 checkpoints/
 *.pk
-.pytest_cache
 __pycache__/
 *.json
