@@ -8,9 +8,13 @@ spec:
       name: writer
     spec:
       containers:
-      - image: gcr.io/writer-01/writer:v1.2.0
+      - image: gcr.io/writer-01/writer:v1.2.1
         env:
         - name: name
           value: value
         name: writer
+      volumes:
+      - name: secrets
+        secret:
+          secretName: writer-app-engine-account
       restartPolicy: Never

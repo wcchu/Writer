@@ -8,8 +8,8 @@ gcloud config set core/disable_usage_reporting true
 gcloud config set component_manager/disable_update_check true
 gcloud config set project writer-01
 
-# if running locally, download and use service account key:
-# gcloud auth activate-service-account --key-file=writer-app-engine.json
+# use service account
+gcloud auth activate-service-account --key-file=/secrets/writer-app-engine.json
 
 # train model
 echo "training model..."
