@@ -4,7 +4,7 @@ now=$(date +"%F-%T")
 
 # set up gcloud
 export PATH=/usr/local/google-cloud-sdk/bin:$PATH
-. .bashrc
+. /.bashrc
 gcloud auth activate-service-account --key-file=/secrets/writer-app-engine.json
 gcloud config set core/disable_usage_reporting true
 gcloud config set component_manager/disable_update_check true
