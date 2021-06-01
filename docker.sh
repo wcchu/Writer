@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+sleep 2h
+
 now=$(date +"%F-%T")
 
 # set up gcloud

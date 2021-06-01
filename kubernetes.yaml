@@ -9,7 +9,7 @@ spec:
     spec:
       containers:
       - name: writer
-        image: gcr.io/writer-01/writer:v1.2.3
+        image: gcr.io/writer-01/writer:test1
         volumeMounts:
         - name: secrets
           mountPath: "/secrets"
