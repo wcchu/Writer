@@ -1,0 +1,21 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: writer
+spec:
+  template:
+    metadata:
+      name: writer
+    spec:
+      containers:
+      - name: writer
+        image: gcr.io/writer-01/writer:v1.2.5
+        volumeMounts:
+        - name: secrets
+          mountPath: "/secrets"
+          readOnly: true
+      volumes:
+      - name: secrets
+        secret:
+          secretName: writer-service-account
+      restartPolicy: Never

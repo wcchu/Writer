@@ -1,6 +1,5 @@
 FROM python:3.8
 WORKDIR /app
-COPY . .
 
 # install python packages
 COPY requirements.txt .
@@ -12,4 +11,4 @@ RUN curl --silent https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/goo
 
 COPY . .
 
-CMD ./run-cloud.sh
+CMD ./docker.sh
