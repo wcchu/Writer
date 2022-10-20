@@ -6,7 +6,7 @@ steps:
   - '-c'
   - |
     docker pull gcr.io/$PROJECT_ID/writer:branch-$BRANCH_NAME \
-    || docker pull gcr.io/$PROJECT_ID/writer:branch-master \
+    || docker pull gcr.io/$PROJECT_ID/writer:branch-main \
     || true
   id: 'pull_writer'
 
