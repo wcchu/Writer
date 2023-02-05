@@ -8,7 +8,7 @@ app = Flask(__name__)
 SEED_TEXT = "In the beginning"
 MIN_LEN = 200
 MAX_LEN = 1000
-TEMPERATURE = 1.0
+TEMPERATURE = 0.5
 
 
 def build_prediction_model(nc):
