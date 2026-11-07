@@ -14,4 +14,4 @@ Use `DATA_DIR` in `learn.py` to choose the training dataset. Run `python learn.p
 
 ## Writing
 
-Run `python main.py` to deploy the writer locally. Open browser with `localhost:5000` (assuming default port is 5000). Add optional input arguments in the form of `localhost:5000/temp/seed/lmin/lmax` where `temp`, `seed`, `lmin`, `lmax` are temperature, seed text, minimal text length, and maximal text length. If they are not defined in the url, the default values in the beginning part of `main.py` code will be taken. I also deployed the app through google app engine to https://writer-01.ey.r.appspot.com. I expect the traffic to be very low so the daily spending limit is set to 1 USD. The access to the app might fail due to this limit.
+Run `python main.py` to start the writer locally. Open a browser at `localhost:5000` (assuming the default port is 5000). Add optional input arguments in the form of `localhost:5000/temp/seed/lmin/lmax` where `temp`, `seed`, `lmin`, and `lmax` are the temperature, seed text, minimum text length, and maximum text length. If they are not defined in the URL, the default values at the beginning of `main.py` will be used.

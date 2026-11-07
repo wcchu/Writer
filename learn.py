@@ -65,9 +65,9 @@ def preprocess(d):
 def build_model(n_chars, emb_size, rnn_units, batch_size):
     '''Define keras rnn model'''
     return tf.keras.Sequential([
+        tf.keras.Input(batch_shape=(batch_size, None)),
         tf.keras.layers.Embedding(n_chars,
-                                  emb_size,
-                                  batch_input_shape=[batch_size, None]),
+                                  emb_size),
         tf.keras.layers.LSTM(rnn_units,
                              return_sequences=True,
                              stateful=True,
@@ -101,7 +101,9 @@ def train_model(data, nc):
     model.compile(optimizer='adam', loss=loss)
 
     # Name of the checkpoint files
-    checkpoint_prefix = os.path.join(CHECKPOINT_DIR, "ckpt_{epoch}")
+    os.makedirs(CHECKPOINT_DIR, exist_ok=True)
+    checkpoint_prefix = os.path.join(CHECKPOINT_DIR,
+                                     "ckpt_{epoch}.weights.h5")
     checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
         filepath=checkpoint_prefix, save_weights_only=True)
 
