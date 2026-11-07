@@ -1,6 +1,7 @@
 from flask import Flask
 from learn import build_model, CHECKPOINT_DIR, EMBEDDING_SIZE, RNN_UNITS
 import pickle
+from pathlib import Path
 import tensorflow as tf
 app = Flask(__name__)
 
@@ -18,7 +19,14 @@ def build_prediction_model(nc):
                         rnn_units=RNN_UNITS,
                         batch_size=1)
     # import trained weights
-    model.load_weights(tf.train.latest_checkpoint(CHECKPOINT_DIR))
+    checkpoints = Path(CHECKPOINT_DIR).glob('ckpt_*.weights.h5')
+    checkpoint = max(checkpoints, key=lambda path: path.stat().st_mtime,
+                     default=None)
+    if checkpoint is None:
+        raise FileNotFoundError(
+            f"No trained weights found in {CHECKPOINT_DIR!r}; run learn.py first."
+        )
+    model.load_weights(checkpoint)
     # model for prediction
     model.build(tf.TensorShape([1, None]))
     return model
@@ -32,7 +40,9 @@ def writer(model, seed, lmin, lmax, temp, char_to_id, id_to_char):
     # initial written text
     written = seed
 
-    model.reset_states()
+    for layer in model.layers:
+        if isinstance(layer, tf.keras.layers.RNN):
+            layer.reset_state()
     for k in range(lmax):
         pred = tf.squeeze(model(input_ids), 0) / temp
 
